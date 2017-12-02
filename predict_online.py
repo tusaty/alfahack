@@ -3,7 +3,8 @@ from __future__ import print_function # for python 2 compatibility
 import hackathon_protocol
 import math, os
 import pandas as pd
-from helpers import MathUtils
+from MLP_model import Model
+#from helpers import MathUtils
 
 USERNAME="DemandHackers"
 PASSWORD="qazqaz17"
@@ -19,10 +20,7 @@ def calc_volatility(mid_prices, window_size):
         return 0
 
     window = mid_prices[-window_size:]
-    # mean = pd.Series(window).median()
-
-    result = MathUtils.als(window, 5, 0.5)
-    mean = result[-1]
+    mean = sum(window) / (window_size - 1)
     return math.sqrt(sum([(x - mean)**2 for x in window]) / (window_size - 1))
 
 
@@ -30,10 +28,12 @@ class MyClient(hackathon_protocol.Client):
     def __init__(self, sock):
         super(MyClient, self).__init__(sock)
         self.target_instrument = 'TEA'
-
+        self.result = 0.
         self.send_login(USERNAME, PASSWORD)
-        self.mid_prices = []
+        self.X = []
         self.header = {}
+        self.model = Model('model_mlp.pickle', 'model_meta.hdf')
+
 
     def is_log_enabled(self):
         return False    # Enable or disable log
@@ -52,13 +52,17 @@ class MyClient(hackathon_protocol.Client):
         best_ask = int(cvs_line_values[self.header['ASK_P_1']])
 
         if instrument == self.target_instrument:
-            self.mid_prices.append((best_bid + best_ask) / 2.0)
+            df = pd.DataFrame([cvs_line_values], columns=self.header)
+            self.X = self.model.injest_line(df)
+            #self.X.append((best_bid + best_ask) * 0.5)
 
     def make_prediction(self):
-        # return current volatility as answer
-        answer = calc_volatility(self.mid_prices, 20)
-
+        # return current volatility as answe
         # TODO: provide better prediction algorithm here
+        answer = self.model.predict()
+        #answer = calc_volatility(self.X, 100)
+
+
         self.send_volatility(answer)
 
     def on_score(self, items_processed, time_elapsed, score_value):

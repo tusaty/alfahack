@@ -3,7 +3,7 @@ from __future__ import print_function # for python 2 compatibility
 import hackathon_protocol
 import math, os
 import pandas as pd
-#from helpers import MathUtils
+from helpers import MathUtils
 
 USERNAME="DemandHackers"
 PASSWORD="qazqaz17"
@@ -19,7 +19,10 @@ def calc_volatility(mid_prices, window_size):
         return 0
 
     window = mid_prices[-window_size:]
-    mean = pd.Series(window).median()
+    # mean = pd.Series(window).median()
+
+    result = MathUtils.als(window, 5, 0.5)
+    mean = result[-1]
     return math.sqrt(sum([(x - mean)**2 for x in window]) / (window_size - 1))
 
 
@@ -53,7 +56,7 @@ class MyClient(hackathon_protocol.Client):
 
     def make_prediction(self):
         # return current volatility as answer
-        answer = calc_volatility(self.mid_prices, 100)
+        answer = calc_volatility(self.mid_prices, 20)
 
         # TODO: provide better prediction algorithm here
         self.send_volatility(answer)

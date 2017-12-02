@@ -2,10 +2,11 @@
 from __future__ import print_function # for python 2 compatibility
 import hackathon_protocol
 import math, os
-
+import pandas as pd
+#from helpers import MathUtils
 
 USERNAME="DemandHackers"
-PASSWORD="qazqazqaz17"
+PASSWORD="qazqaz17"
 
 CONNECT_IP = os.environ.get("HACKATHON_CONNECT_IP") or "127.0.0.1"
 CONNECT_PORT = int(os.environ.get("HACKATHON_CONNECT_PORT") or 12345)
@@ -18,7 +19,7 @@ def calc_volatility(mid_prices, window_size):
         return 0
 
     window = mid_prices[-window_size:]
-    mean = sum(window) / window_size
+    mean = pd.Series(window).median()
     return math.sqrt(sum([(x - mean)**2 for x in window]) / (window_size - 1))
 
 

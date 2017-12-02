@@ -14,6 +14,7 @@ COPY readme.txt /app
 ENV HACKATHON_CONNECT_IP "172.17.0.1"
 ENV HACKATHON_CONNECT_PORT "12345"
 
+RUN pip install scipy
+
 # Run predict_online.py when the container launches
 CMD ["python3", "predict_online.py"]
-
